@@ -8,6 +8,7 @@ from analysis_wechat_text import AnalysisWechatText
 from audio import Audio
 from analysis import Analysis
 from pi_camera import Camera
+from vedio import start_vedio
 
 camera = Camera()
 audio = Audio()
@@ -20,7 +21,7 @@ interrupted = False
 def wechat_msg_handle():
     @itchat.msg_register(itchat.content.TEXT)
     def print_content(msg):
-        print("微信收到消息")
+        print(msg.text)
         if msg.toUserName == 'filehelper':
             analysis.get_audio(msg.text, file_name)
             audio.play_audio(file_name)
@@ -31,8 +32,9 @@ def wechat_msg_handle():
     itchat.auto_login(enableCmdQR=2)
     itchat.run()
 
-t = threading.Thread(target=wechat_msg_handle)
-
+t_wechat = threading.Thread(target=wechat_msg_handle)
+t_vedio = threading.Thread(target=start_vedio, args=(camera.camera,))
+t_info = threading.Thread(target=analysis_text.send_data)
 def signal_handler(signal, frame):
     global interrupted
     interrupted = True
@@ -61,14 +63,19 @@ def callbacks():
 def wake_up():
 
     global detector
-    model = 'resources/models/lize.pmdl'
+    model = 'resources/models/xiaomei.pmdl'
     signal.signal(signal.SIGINT, signal_handler)
-    detector = snowboydecoder.HotwordDetector(model, sensitivity=0.5)
+    detector = snowboydecoder.HotwordDetector(model, sensitivity=0.4)
     detector.start(detected_callback=callbacks,
                    interrupt_check=interrupt_callback,
                    sleep_time=0.03)
     detector.terminate()
 
 if __name__ == "__main__":
-    t.start()
+    t_wechat.setDaemon(True)
+    t_vedio.setDaemon(True)
+    t_info.setDaemon(True)
+    t_wechat.start()
+    t_vedio.start()
+    t_info.start()
     wake_up()

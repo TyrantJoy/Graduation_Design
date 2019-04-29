@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+from urllib.parse import urlencode 
 import requests
 import json
 import subprocess
@@ -12,7 +12,7 @@ class Music():
         self.FILTER = 'name'
 
     def get_music_url(self, music_name):
-
+        
         data = {
             'input':music_name,
             'filter':self.FILTER,
@@ -40,14 +40,27 @@ class Music():
         result = requests.post(self.URL, data=data, headers=headers)
 
         music_url = result.json()['data'][0]['url']
-
+        
         return music_url
 
     def play_music(self, music_name):
-
+        
         music_url = self.get_music_url(music_name)
 
-        music_data = requests.get(music_url)
+        headers = {
+            'Host':'dl.stream.qqmusic.qq.com',
+            'Referer':music_url,
+            'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
+        }
+
+        if music_url:
+            music_data = requests.get(music_url)
+        else:
+            self.TYPE = 'qq'
+            music_url = self.get_music_url(music_name)
+            self.TYPE = 'netease'
+            music_data = requests.get(music_url, headers=headers)
+
 
         filename = music_name + '.mp3'
 

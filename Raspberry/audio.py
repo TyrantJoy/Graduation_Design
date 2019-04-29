@@ -3,10 +3,10 @@ import wave
 
 '''定义音频处理类'''
 class Audio():
-    
+
     '''初始化各项属性,如果想要修改音频的音质从这里修改'''
     def __init__(self):
-        self.CHUNK = 1024
+        self.CHUNK = 8192
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
         self.RATE = 16000
@@ -42,7 +42,7 @@ class Audio():
         wf.setframerate(self.RATE)
         wf.writeframes(b''.join(frames))
         wf.close()
-    
+
     '''播放音频文件,需要传入文件名字'''
     def play_audio(self, filename):
 
@@ -56,13 +56,13 @@ class Audio():
                         output=True)
         # 读取数据
         data = wf.readframes(self.CHUNK)
-        # 播放  
+        # 播放
         while len(data) > 0:
             stream.write(data)
             data = wf.readframes(self.CHUNK)
-        # 停止数据流  
+        # 停止数据流
         stream.stop_stream()
         stream.close()
         wf.close()
-        # 关闭 PyAudio  
-        p.terminate()  
+        # 关闭 PyAudio
+        p.terminate()
